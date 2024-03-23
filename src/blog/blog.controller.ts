@@ -20,12 +20,61 @@ export class BlogController {
         return this.blogService.getBlogs();
     }
 
+    @Get('/:id')
+    async getBlogById(
+        @Param('id') id: string
+    ): Promise<BlogDocument> {
+        await this.blogService.addViewToBlog(id);
+        return await this.blogService.getBlogById(id);
+    }
+
     @Put('/:id')
     @UsePipes(new ValidationPipe({ transform: true }))
     async updateBlog(
         @Param('id') id: string,
         @Body() body: UpdateBlogDTO
-    ): Promise<BlogDocument> {
-        return this.blogService.updateBlogById(id, body);
+    ): Promise<string> {
+        try {
+            await this.blogService.updateBlogById(id, body);
+            return 'Blog updated successfully';
+        } catch (error) {
+            throw new Error('Error updating blog');
+        }
+    }
+
+    @Put('/:id/like')
+    async likeBlog(
+        @Param('id') id: string
+    ): Promise<string> {
+        try {
+            await this.blogService.addLikeToBlog(id);
+            return 'Blog liked successfully';
+        } catch (error) {
+            throw new Error('Error liking blog');
+        }
+    }
+
+    @Put('/:id/share')
+    async shareBlog(
+        @Param('id') id: string
+    ): Promise<string> {
+        try {
+            await this.blogService.addShareToBlog(id);
+            return 'Blog shared successfully';
+        } catch (error) {
+            throw new Error('Error sharing blog');
+        }
+    }
+
+    @Put('/:id/archive')
+    async archiveBlog(
+        @Param('id') id: string
+    ): Promise<string> {
+        try {
+            await this.blogService.deleteBlogById(id);
+            return 'Blog archived successfully';
+        } catch (error) {
+            throw new Error('Error archiving blog');
+        }
     }
 }

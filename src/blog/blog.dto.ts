@@ -38,7 +38,7 @@ export class BlogDTO {
     @IsString()
     slug: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsEnum(Status)
     status: Status;
 

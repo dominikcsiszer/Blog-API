@@ -1,35 +1,38 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Blog, BlogCreationParams, BlogDocument } from './blog.schema';
+import { Blog, BlogDocument } from './blog.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Status } from './blog.types';
 import { slugify } from 'src/utils/slug';
+import { BlogDTO } from './blog.dto';
 
 @Injectable()
 export class BlogService {
     constructor(@InjectModel(Blog.name) private blogModel: Model<BlogDocument>) {}
 
-    async createBlog(params: BlogCreationParams): Promise<BlogDocument> {
-        console.log("Create blog params: ", params);
+    async createBlog(params: BlogDTO): Promise<BlogDocument> {
         try {
-            const slug = slugify(params.title);
-            console.log("Slug: ", slug);
-            const newBlog =  new this.blogModel(); // Create a new blog object
-            console.log("New Blog Object:", newBlog); // Log the new blog object
-            return newBlog.save(); // Return the saved blog
-        } catch (error) {
+            const slug = slugify(params.title); // Generate a slug from the title
+            const newBlog = new this.blogModel({ 
+                ...params, 
+                slug, 
+                status: Status.DRAFT
+            }); // Create a new blog object
+            return await newBlog.save(); // Return the saved blog
+          } catch (error) {
             console.error(error);
-            throw new Error("Error creating blog");
-        }
+            throw new Error(`Error creating blog: Please try again. ${error.message}`);
+          }
     }
     
 
     async getBlogs(): Promise<BlogDocument[]> {
-        return this.blogModel.find().exec();
+        // Get blogs only the status is PUBLISHED
+        return await this.blogModel.find({ status: Status.PUBLISHED }).exec();
     }
 
     async getBlogById(id: string): Promise<BlogDocument> {
-        return this.blogModel.findOne({ _id: id }).exec();
+        return await this.blogModel.findOne({ _id: id }).exec();
     }
 
     async updateBlogById(id: string, params: Partial<Blog>): Promise<BlogDocument> {
@@ -43,11 +46,11 @@ export class BlogService {
         }
 
         Object.assign(blog, {
-            params,
+            ...params,
             updatedAt: new Date(),
         })
 
-        return blog.save();
+        return await blog.save();
     }
 
     async deleteBlogById(id: string): Promise<BlogDocument> {
@@ -57,5 +60,29 @@ export class BlogService {
         }
 
         return this.updateBlogById(id, { status: Status.ARCHIVED })
+    }
+
+    async addViewToBlog(id: string): Promise<void> {
+        await this.blogModel.updateOne(
+            { _id: id }, 
+            { $inc: { 'metadata.viewCount': 1 } },
+            { upsert: true }
+        );
+    }
+
+    async addLikeToBlog(id: string): Promise<void> {
+        await this.blogModel.updateOne(
+            { _id: id }, 
+            { $inc: { 'metadata.likeCount': 1 } },
+            { upsert: true }
+        );
+    }
+
+    async addShareToBlog(id: string): Promise<void> {
+        await this.blogModel.updateOne(
+            { _id: id }, 
+            { $inc: { 'metadata.shareCount': 1 } },
+            { upsert: true }
+        );
     }
 }
