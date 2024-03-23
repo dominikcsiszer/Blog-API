@@ -3,13 +3,15 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { BlogModule } from './blog/blog.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { SearchModule } from './search/search.module';
 import CONFIG from 'config/config';
 import mongoose from 'mongoose';
 
 @Module({
   imports: [
     MongooseModule.forRoot(CONFIG.MONGODB_CONNECTION_URI),
-    BlogModule
+    BlogModule,
+    SearchModule
   ],
   controllers: [AppController],
   providers: [
