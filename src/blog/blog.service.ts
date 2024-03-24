@@ -5,16 +5,25 @@ import { Model } from 'mongoose';
 import { Status } from './blog.types';
 import { slugify } from 'src/utils/slug';
 import { BlogDTO } from './blog.dto';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class BlogService {
-    constructor(@InjectModel(Blog.name) private blogModel: Model<BlogDocument>) {}
+    constructor(
+        @InjectModel(Blog.name) private blogModel: Model<BlogDocument>,
+        private readonly userService: UserService
+    ) {}
 
-    async createBlog(params: BlogDTO): Promise<BlogDocument> {
+    async createBlog(params: BlogDTO, userEmail: string): Promise<BlogDocument> {
         try {
+            const user = await this.userService.findOneByEmail(userEmail);
             const slug = slugify(params.title); // Generate a slug from the title
             const newBlog = new this.blogModel({ 
                 ...params, 
+                author: {
+                    name: user.fullname,
+                    email: user.email
+                },
                 slug, 
                 status: Status.DRAFT
             }); // Create a new blog object

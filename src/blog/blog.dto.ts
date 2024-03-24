@@ -7,6 +7,7 @@ import {
     IsDate,
     IsEnum,
     IsNotEmpty,
+    IsEmpty,
 } from "class-validator"
 import { Type } from "class-transformer"
 import { BlogAuthorDTO, MetadataDTO } from "src/types/global.dto";
@@ -24,7 +25,7 @@ export class BlogDTO {
     @MinLength(10)
     content: string
 
-    @IsNotEmpty()
+    @IsEmpty()
     @ValidateNested()
     @Type(() => BlogAuthorDTO)
     author: BlogAuthorDTO;

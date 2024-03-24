@@ -1,18 +1,21 @@
-import { Body, Controller, Get, Param, Post, Put, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Req, Request, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Blog, BlogDocument } from './blog.schema';
 import { BlogDTO, UpdateBlogDTO } from './blog.dto';
 import { BlogService } from './blog.service';
+import { JwtGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('blog')
 export class BlogController {
     constructor(private readonly blogService: BlogService) {}
 
+    @UseGuards(JwtGuard)
     @Post()
     @UsePipes(new ValidationPipe({ transform: true }))
     async createBlog(
-        @Body() body: BlogDTO
+        @Body() body: BlogDTO,
+        @Request() req
     ): Promise<BlogDocument> {
-        return this.blogService.createBlog(body);
+        return this.blogService.createBlog(body, req.user.email);
     }
 
     @Get()

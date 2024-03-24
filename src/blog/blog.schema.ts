@@ -13,7 +13,7 @@ export class Blog {
   @Prop({ required: true })
   content: string;
 
-  @Prop({ required: true, type: BlogAuthorDTO })
+  @Prop({ type: BlogAuthorDTO })
   author: BlogAuthor;
 
   @Prop({ type: [String], default: [] })
