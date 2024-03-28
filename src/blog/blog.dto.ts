@@ -23,6 +23,11 @@ export class BlogDTO {
     @IsNotEmpty()
     @IsString()
     @MinLength(10)
+    lead: string
+
+    @IsNotEmpty()
+    @IsString()
+    @MinLength(10)
     content: string
 
     @IsEmpty()
@@ -67,6 +72,9 @@ export class UpdateBlogDTO extends BlogDTO {
 
     @IsOptional()
     title: string
+
+    @IsOptional()
+    lead: string
 
     @IsOptional()
     content: string

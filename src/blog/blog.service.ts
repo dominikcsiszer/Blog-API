@@ -14,10 +14,20 @@ export class BlogService {
         private readonly userService: UserService
     ) {}
 
+    createSlug(title: string): string {
+        // put the date like 2024/03/26/slugified-title in the slug
+        const date = new Date();
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const slug = `${year}/${month}/${day}/${slugify(title)}`;
+        return slug;
+    }
+
     async createBlog(params: BlogDTO, userEmail: string): Promise<BlogDocument> {
         try {
             const user = await this.userService.findOneByEmail(userEmail);
-            const slug = slugify(params.title); // Generate a slug from the title
+            const slug = this.createSlug(params.title); // Generate a slug from the title
             const newBlog = new this.blogModel({ 
                 ...params, 
                 author: {
@@ -93,5 +103,10 @@ export class BlogService {
             { $inc: { 'metadata.shareCount': 1 } },
             { upsert: true }
         );
+    }
+
+    async isBlogOwner(userEmail: string, blogId: string): Promise<boolean> {
+        const blog = await this.getBlogById(blogId)
+        return blog.author.email === userEmail
     }
 }

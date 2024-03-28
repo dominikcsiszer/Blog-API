@@ -15,7 +15,7 @@ import { RefreshJwtStrategy } from './strategies/refreshToken.strategy';
   imports: [
     JwtModule.register({
       secret: `${CONFIG.SECRET_KEY}`,
-      signOptions: { expiresIn: '60s' },
+      signOptions: { expiresIn: '60d' },
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     MongooseModule.forRoot(CONFIG.MONGODB_CONNECTION_URI),

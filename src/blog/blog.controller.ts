@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Req, Request, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, InternalServerErrorException, Param, Post, Put, Req, Request, UnauthorizedException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Blog, BlogDocument } from './blog.schema';
 import { BlogDTO, UpdateBlogDTO } from './blog.dto';
 import { BlogService } from './blog.service';
@@ -14,7 +14,7 @@ export class BlogController {
     async createBlog(
         @Body() body: BlogDTO,
         @Request() req
-    ): Promise<BlogDocument> {
+    ): Promise<any> {
         return this.blogService.createBlog(body, req.user.email);
     }
 
@@ -31,17 +31,22 @@ export class BlogController {
         return await this.blogService.getBlogById(id);
     }
 
+    @UseGuards(JwtGuard)
     @Put('/:id')
     @UsePipes(new ValidationPipe({ transform: true }))
     async updateBlog(
         @Param('id') id: string,
-        @Body() body: UpdateBlogDTO
+        @Body() body: UpdateBlogDTO,
+        @Request() req
     ): Promise<string> {
         try {
+            if(!await this.blogService.isBlogOwner(req.user.email, id))
+                throw new UnauthorizedException('You are not the owner of this blog');
+
             await this.blogService.updateBlogById(id, body);
             return 'Blog updated successfully';
         } catch (error) {
-            throw new Error('Error updating blog');
+            throw new InternalServerErrorException('Error updating blog');
         }
     }
 
